@@ -5,7 +5,7 @@ from django.contrib.gis.geos import Point
 from django.http import JsonResponse
 from django.views import View
 
-from .forms import NeighbourListForm
+from .forms import NeighbourListForm, NeighbourCreateForm
 from .models import Neighbour
 
 
@@ -35,6 +35,25 @@ class NeighbourView(View):
         return JsonResponse(
             list(map(serialize_neighbour, ordered_neighbours[:n])), safe=False,
         )
+
+    def post(self, request):
+        form = NeighbourCreateForm(request.POST)
+        if not form.is_valid():
+            return JsonResponse(
+                form.errors.as_json(), safe=False,
+                status=HTTPStatus.BAD_REQUEST,
+            )
+
+        point = Point(
+            form.cleaned_data['x'],
+            form.cleaned_data['y'],
+            srid=WGS84_SRID,
+        )
+        name = form.cleaned_data['name']
+
+        Neighbour.objects.create(name=name, point=point)
+
+        return JsonResponse({}, status=HTTPStatus.CREATED)
 
 
 def serialize_neighbour(neighbour):

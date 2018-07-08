@@ -38,3 +38,39 @@ class GetNeighbourTestCase(TestCase):
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertJSONEqual(response.content, ['mimmy', 'sugar'])
+
+
+class CreateNeighbourTestCase(TestCase):
+    url = reverse_lazy('neighbours')
+
+    def test_create_neighbour_with_bad_params(self):
+        bad_params = [
+            {},
+            {'x': 1},
+            {'y': 1},
+            {'x': 1, 'y': 1},
+            {'name': 'kitty'},
+            {'name': 'kitty', 'x': 1},
+            {'name': 'kitty', 'y': 1},
+            {'name': 'kitty'*60, 'x': 1, 'y': 1},
+        ]
+
+        for params in bad_params:
+            with self.subTest(params=params):
+                response = self.client.post(self.url, data=params)
+
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+
+    def test_create_neighbour(self):
+        data = {
+            'name': 'kitty',
+            'x': 1,
+            'y': 2,
+        }
+
+        response = self.client.post(self.url, data=data)
+
+        self.assertEqual(response.status_code, HTTPStatus.CREATED)
+        self.assertTrue(
+            Neighbour.objects.filter(name='kitty', point=Point(1, 2)).exists()
+        )

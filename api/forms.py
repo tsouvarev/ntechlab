@@ -8,3 +8,9 @@ class NeighbourListForm(forms.Form):
     )
     x = forms.FloatField()
     y = forms.FloatField()
+
+
+class NeighbourCreateForm(forms.Form):
+    name = forms.CharField(max_length=255)
+    x = forms.FloatField()
+    y = forms.FloatField()
